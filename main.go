@@ -52,12 +52,12 @@ func rayColor(r vec.Ray3D, world *hittable.HitObjectList, depth int) vec.Vector3
 func randomScene() hittable.HitObjectList {
 	world := hittable.NewHitObjectList()
 
-	world.Add(hittable.NewSphere(vec.NewVector3D(0,-1000,0), 1000, hittable.Lambertian{vec.NewVector3D(0.1, 0.4, 0.1)}))
+	//world.Add(hittable.NewSphere(vec.NewVector3D(0,-1000,0), 1000, hittable.Lambertian{vec.NewVector3D(0.1, 0.4, 0.1)}))
+	world.Add(hittable.NewSphere(vec.NewVector3D(0,-1000,0), 1000, hittable.NewMetal(vec.NewVector3D(0.4, 0.9, 0.4), 0.0)))
 
 	for a := -11.0; a < 11; a++ {
 		for b := -11.0; b < 11; b++ {
 			chooseMat := util.Random()
-			chooseMat = 1
 			center := vec.NewVector3D(a + 0.9*util.Random(), 0.2, b + 0.9 * util.Random())
 			if (center.Subtract(vec.NewVector3D(4, 0.2, 0))).Length() > 0.9 {
 				if chooseMat < 0.8 {
@@ -91,8 +91,8 @@ func randomScene() hittable.HitObjectList {
 }
 
 func main() {
-	const imageWidth = 400
-	const imageHeight = 200
+	const imageWidth = 200
+	const imageHeight = 100
 	const samplesPerPixel = 100
 	const maxDepth = 50
 
