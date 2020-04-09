@@ -1,8 +1,8 @@
 package hittable
 
 import (
+	"go-raytracer/vec"
 	"math"
-	"raytracing-tutorial/vec"
 )
 
 type Sphere struct {

@@ -1,7 +1,7 @@
 package hittable
 
 import (
-	"raytracing-tutorial/vec"
+	"go-raytracer/vec"
 )
 
 type HitRecord struct {

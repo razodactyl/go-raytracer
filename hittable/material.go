@@ -1,9 +1,9 @@
 package hittable
 
 import (
+	"go-raytracer/util"
+	"go-raytracer/vec"
 	"math"
-	"raytracing-tutorial/util"
-	"raytracing-tutorial/vec"
 )
 
 type Material interface {

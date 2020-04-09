@@ -5,11 +5,11 @@ package main
 
 import (
 	"fmt"
+	"go-raytracer/hittable"
+	"go-raytracer/util"
+	"go-raytracer/vec"
 	"math"
 	"os"
-	"raytracing-tutorial/hittable"
-	"raytracing-tutorial/util"
-	"raytracing-tutorial/vec"
 )
 
 

@@ -1,8 +1,8 @@
 package vec
 
 import (
+	"go-raytracer/util"
 	"math"
-	"raytracing-tutorial/util"
 )
 
 type Camera struct {

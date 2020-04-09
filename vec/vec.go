@@ -2,8 +2,8 @@ package vec
 
 import (
 	"fmt"
+	"go-raytracer/util"
 	"math"
-	"raytracing-tutorial/util"
 )
 
 type Vector3D struct {
