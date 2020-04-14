@@ -2,7 +2,7 @@ package vec
 
 import (
 	"fmt"
-	"go-raytracer/util"
+	"github.com/razodactyl/go-raytracer/util"
 	"math"
 )
 

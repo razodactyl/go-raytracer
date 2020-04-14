@@ -5,9 +5,12 @@ package main
 
 import (
 	"fmt"
-	"go-raytracer/hittable"
-	"go-raytracer/util"
-	"go-raytracer/vec"
+	//"github.com/faiface/pixel"
+	//"github.com/faiface/pixel/pixelgl"
+	"github.com/razodactyl/go-raytracer/hittable"
+	"github.com/razodactyl/go-raytracer/util"
+	"github.com/razodactyl/go-raytracer/vec"
+	//"golang.org/x/image/colornames"
 	"math"
 	"os"
 	"sync"
@@ -93,10 +96,24 @@ func randomScene() hittable.HitObjectList {
 
 const imageWidth = 200 * 2
 const imageHeight = 100 * 2
-const samplesPerPixel = 100
-const maxDepth = 50
+//const samplesPerPixel = 100
+const samplesPerPixel = 1
+const maxDepth = 50 * .5
 
 func main() {
+	//cfg := pixelgl.WindowConfig{
+	//	Title: "Go Raytracer",
+	//	Bounds: pixel.R(0, 0, imageWidth, imageHeight),
+	//	VSync: true
+	//}
+	//win, err := pixelgl.NewWindow(cfg)
+	//check(err)
+	//
+	//for !win.Closed() {
+	//	win.Clear(colornames.Aliceblue)
+	//	win.Update()
+	//}
+
 	f, err := os.Create(fmt.Sprintf("./image%vx%v-spp%v-depth%v.ppm", imageWidth, imageHeight, samplesPerPixel, maxDepth))
 	check(err)
 
@@ -132,8 +149,6 @@ func main() {
 	writePixels(c, *f, samplesPerPixel)
 
 	fmt.Println("Done.")
-
-	f.Sync()
 }
 
 type orderedPixel struct {
@@ -175,16 +190,18 @@ func writePixels(c chan orderedPixel, file os.File, samplesPerPixel int) {
 	}
 	wg.Wait()
 
-	wg.Add(imageWidth * imageHeight)
+	//wg.Add(imageWidth * imageHeight)
 	steps := 0.0
+	fmt.Println("Writing file...")
 	for j := imageHeight; j > 0; j-- {
 		for i := 0; i < imageWidth; i++ {
 			steps += 1
-			percent := int((steps / (imageWidth * imageHeight)) * 100)
-			fmt.Println("Writing file:", percent, "%")
+			//percent := int((steps / (imageWidth * imageHeight)) * 100)
+			//fmt.Println("Writing file:", percent, "%")
 			file.WriteString(pixels[i][j].ColorString(samplesPerPixel))
-			wg.Done()
+			//wg.Done()
 		}
 	}
-	wg.Wait()
+	file.Sync()
+	//wg.Wait()
 }

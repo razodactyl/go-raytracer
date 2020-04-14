@@ -1,8 +1,8 @@
 package hittable
 
 import (
-	"go-raytracer/util"
-	"go-raytracer/vec"
+	"github.com/razodactyl/go-raytracer/util"
+	"github.com/razodactyl/go-raytracer/vec"
 	"math"
 )
 
