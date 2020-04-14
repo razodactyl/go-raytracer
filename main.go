@@ -10,6 +10,7 @@ import (
 	"go-raytracer/vec"
 	"math"
 	"os"
+	"sync"
 )
 
 
@@ -90,12 +91,12 @@ func randomScene() hittable.HitObjectList {
 	return *world
 }
 
-func main() {
-	const imageWidth = 200
-	const imageHeight = 100
-	const samplesPerPixel = 100
-	const maxDepth = 50
+const imageWidth = 200 * 2
+const imageHeight = 100 * 2
+const samplesPerPixel = 100
+const maxDepth = 50
 
+func main() {
 	f, err := os.Create(fmt.Sprintf("./image%vx%v-spp%v-depth%v.ppm", imageWidth, imageHeight, samplesPerPixel, maxDepth))
 	check(err)
 
@@ -115,22 +116,75 @@ func main() {
 	aperture := 0.1
 	camera := vec.NewCamera(lookFrom, lookAt, vup, 30, aspectRatio, aperture, distToFocus)
 
-	for j := imageHeight; j >= 0; j-- {
+	var wg sync.WaitGroup
+	c := make(chan orderedPixel, imageWidth * imageHeight)
+
+	wg.Add(imageWidth * imageHeight)
+	fmt.Println(imageWidth * imageHeight)
+	for j := imageHeight; j > 0; j-- {
 		fmt.Println("\rScanlines remaining: ", j, " ")
 		for i := 0; i < imageWidth; i++ {
-			color := vec.Zero()
-			for s := 0; s < samplesPerPixel; s++ {
-				u := (float64(i) + util.Random()) / imageWidth
-				v := (float64(j) + util.Random()) / imageHeight
-				r := camera.GetRay(u, v)
-				color = color.Add(rayColor(r, &world, maxDepth))
-			}
-
-			f.WriteString(color.ColorString(samplesPerPixel))
+			go renderPixel(&wg, c, samplesPerPixel, maxDepth, imageWidth, imageHeight, i, j, camera, world)
 		}
 	}
+	wg.Wait()
+
+	writePixels(c, *f, samplesPerPixel)
 
 	fmt.Println("Done.")
 
 	f.Sync()
+}
+
+type orderedPixel struct {
+	color vec.Vector3D
+	x int
+	y int
+}
+
+func renderPixel(wg *sync.WaitGroup, c chan orderedPixel, samplesPerPixel int, maxDepth int, imageWidth float64, imageHeight float64, i int, j int, camera *vec.Camera, world hittable.HitObjectList) {
+	color := vec.Zero()
+
+	for s:= 0; s < samplesPerPixel; s++ {
+		u := (float64(i) + util.Random()) / imageWidth
+		v := (float64(j) + util.Random()) / imageHeight
+		r := camera.GetRay(u, v)
+		color = color.Add(rayColor(r, &world, maxDepth))
+	}
+	
+	c <- orderedPixel{
+		color: color,
+		x: i,
+		y: j,
+	}
+
+	wg.Done()
+}
+
+func writePixels(c chan orderedPixel, file os.File, samplesPerPixel int) {
+	var pixels [imageWidth+1][imageHeight+1]vec.Vector3D
+
+	var wg sync.WaitGroup
+	wg.Add(imageWidth * imageHeight)
+	for j := imageHeight; j > 0; j-- {
+		for i := 0; i < imageWidth; i++ {
+			pixel := <-c
+			pixels[pixel.x][pixel.y] = pixel.color
+			wg.Done()
+		}
+	}
+	wg.Wait()
+
+	wg.Add(imageWidth * imageHeight)
+	steps := 0.0
+	for j := imageHeight; j > 0; j-- {
+		for i := 0; i < imageWidth; i++ {
+			steps += 1
+			percent := int((steps / (imageWidth * imageHeight)) * 100)
+			fmt.Println("Writing file:", percent, "%")
+			file.WriteString(pixels[i][j].ColorString(samplesPerPixel))
+			wg.Done()
+		}
+	}
+	wg.Wait()
 }
