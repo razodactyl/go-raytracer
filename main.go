@@ -5,17 +5,14 @@ package main
 
 import (
 	"fmt"
-	//"github.com/faiface/pixel"
-	//"github.com/faiface/pixel/pixelgl"
-	"github.com/razodactyl/go-raytracer/hittable"
-	"github.com/razodactyl/go-raytracer/util"
-	"github.com/razodactyl/go-raytracer/vec"
-	//"golang.org/x/image/colornames"
 	"math"
 	"os"
 	"sync"
-)
 
+	"github.com/razodactyl/go-raytracer/hittable"
+	"github.com/razodactyl/go-raytracer/util"
+	"github.com/razodactyl/go-raytracer/vec"
+)
 
 func check(e error) {
 	if e != nil {
@@ -50,24 +47,24 @@ func rayColor(r vec.Ray3D, world *hittable.HitObjectList, depth int) vec.Vector3
 	}
 	unitDirection := r.Direction.Unit()
 	t := 0.5 * (unitDirection.Y + 1)
-	return vec.Unit().MultiplyScalar(1.0-t).Add(vec.NewVector3D(0.5, 0.7, 1.0).MultiplyScalar(t))
+	return vec.Unit().MultiplyScalar(1.0 - t).Add(vec.NewVector3D(0.5, 0.7, 1.0).MultiplyScalar(t))
 }
 
 func randomScene() hittable.HitObjectList {
 	world := hittable.NewHitObjectList()
 
 	//world.Add(hittable.NewSphere(vec.NewVector3D(0,-1000,0), 1000, hittable.Lambertian{vec.NewVector3D(0.1, 0.4, 0.1)}))
-	world.Add(hittable.NewSphere(vec.NewVector3D(0,-1000,0), 1000, hittable.NewMetal(vec.NewVector3D(0.4, 0.9, 0.4), 0.0)))
+	world.Add(hittable.NewSphere(vec.NewVector3D(0, -1000, 0), 1000, hittable.NewMetal(vec.NewVector3D(0.4, 0.9, 0.4), 0.0)))
 
 	for a := -11.0; a < 11; a++ {
 		for b := -11.0; b < 11; b++ {
 			chooseMat := util.Random()
-			center := vec.NewVector3D(a + 0.9*util.Random(), 0.2, b + 0.9 * util.Random())
+			center := vec.NewVector3D(a+0.9*util.Random(), 0.2, b+0.9*util.Random())
 			if (center.Subtract(vec.NewVector3D(4, 0.2, 0))).Length() > 0.9 {
 				if chooseMat < 0.8 {
 					// diffuse
 					albedo := vec.Random().Multiply(vec.Random())
-					world.Add(hittable.NewSphere(center, 0.2, hittable.Lambertian{Albedo:albedo}))
+					world.Add(hittable.NewSphere(center, 0.2, hittable.Lambertian{Albedo: albedo}))
 				} else if chooseMat < 0.95 {
 					// metal
 					albedo := vec.RandomBetween(.5, 1)
@@ -81,9 +78,9 @@ func randomScene() hittable.HitObjectList {
 		}
 	}
 
-	world.Add(hittable.NewSphere(vec.NewVector3D(4,1,0), 1.0, hittable.NewDielectric(1.1)))
-	world.Add(hittable.NewSphere(vec.NewVector3D(0,1,0), 1.0, hittable.Lambertian{vec.NewVector3D(0.3, 1, 0.3)}))
-	world.Add(hittable.NewSphere(vec.NewVector3D(-4,1,0), 1.0, hittable.NewMetal(vec.NewVector3D(0.4, 0.9, 0.4), 0.0)))
+	world.Add(hittable.NewSphere(vec.NewVector3D(4, 1, 0), 1.0, hittable.NewDielectric(1.1)))
+	//world.Add(hittable.NewSphere(vec.NewVector3D(0, 1, 0), 1.0, hittable.Lambertian{vec.NewVector3D(0.3, 1, 0.3)}))
+	world.Add(hittable.NewSphere(vec.NewVector3D(-4, 1, 0), 1.0, hittable.NewMetal(vec.NewVector3D(0.4, 0.9, 0.4), 0.0)))
 
 	//world.Add(hittable.NewSphere(vec.NewVector3D(0,0,-1), 0.5, hittable.Lambertian{vec.NewVector3D(0.1, 0.2, 0.5)}))
 	//world.Add(hittable.NewSphere(vec.NewVector3D(0,-100.5,-1), 100, hittable.Lambertian{vec.NewVector3D(0.8, 0.8, 0.0)}))
@@ -94,17 +91,16 @@ func randomScene() hittable.HitObjectList {
 	return *world
 }
 
-const imageWidth = 200 * 2
-const imageHeight = 100 * 2
-//const samplesPerPixel = 100
-const samplesPerPixel = 1
-const maxDepth = 50 * .5
+const imageWidth = 200 * 4
+const imageHeight = 100 * 4
+const samplesPerPixel = 100
+const maxDepth = 50 * 1
 
 func main() {
 	//cfg := pixelgl.WindowConfig{
 	//	Title: "Go Raytracer",
 	//	Bounds: pixel.R(0, 0, imageWidth, imageHeight),
-	//	VSync: true
+	//	VSync: true,
 	//}
 	//win, err := pixelgl.NewWindow(cfg)
 	//check(err)
@@ -125,7 +121,7 @@ func main() {
 
 	aspectRatio := float64(imageWidth / imageHeight)
 	lookFrom := vec.NewVector3D(13, 2, 3)
-	lookAt := vec.NewVector3D(0,0,0)
+	lookAt := vec.NewVector3D(0, 0, 0)
 	vup := vec.NewVector3D(0, 1, 0)
 	//aperture := 2.0
 	//distToFocus := (lookFrom.Subtract(lookAt)).Length()
@@ -134,7 +130,7 @@ func main() {
 	camera := vec.NewCamera(lookFrom, lookAt, vup, 30, aspectRatio, aperture, distToFocus)
 
 	var wg sync.WaitGroup
-	c := make(chan orderedPixel, imageWidth * imageHeight)
+	c := make(chan orderedPixel, imageWidth*imageHeight)
 
 	wg.Add(imageWidth * imageHeight)
 	fmt.Println(imageWidth * imageHeight)
@@ -153,31 +149,31 @@ func main() {
 
 type orderedPixel struct {
 	color vec.Vector3D
-	x int
-	y int
+	x     int
+	y     int
 }
 
 func renderPixel(wg *sync.WaitGroup, c chan orderedPixel, samplesPerPixel int, maxDepth int, imageWidth float64, imageHeight float64, i int, j int, camera *vec.Camera, world hittable.HitObjectList) {
 	color := vec.Zero()
 
-	for s:= 0; s < samplesPerPixel; s++ {
+	for s := 0; s < samplesPerPixel; s++ {
 		u := (float64(i) + util.Random()) / imageWidth
 		v := (float64(j) + util.Random()) / imageHeight
 		r := camera.GetRay(u, v)
 		color = color.Add(rayColor(r, &world, maxDepth))
 	}
-	
+
 	c <- orderedPixel{
 		color: color,
-		x: i,
-		y: j,
+		x:     i,
+		y:     j,
 	}
 
 	wg.Done()
 }
 
 func writePixels(c chan orderedPixel, file os.File, samplesPerPixel int) {
-	var pixels [imageWidth+1][imageHeight+1]vec.Vector3D
+	var pixels [imageWidth + 1][imageHeight + 1]vec.Vector3D
 
 	var wg sync.WaitGroup
 	wg.Add(imageWidth * imageHeight)
